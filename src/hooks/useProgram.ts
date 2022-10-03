@@ -26,7 +26,7 @@ export const useProgram = () => {
       const provider = new AnchorProvider(connection);
       setProvider(provider);
 
-      const program = new anchor.Program(idl as any, programID, provider);
+      const program = new anchor.Program(idl as any, programID, window.xnft);
 
       setProgram(program);
     } else {

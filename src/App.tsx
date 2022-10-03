@@ -33,19 +33,34 @@ export function App() {
           [Buffer.from(anchor.utils.bytes.utf8.encode("vault-testaccount"))],
           program.programId
         );
-        
-        const txt = await program.rpc.bet( betSide,		
-          new anchor.BN(amount),
-          {
-          accounts: {
-            lockAccount: lock_account, // publickey for our new account
-            owner: publicKey,
-            escrowAccount: escrow_account,
-            systemProgram: anchor.web3.SystemProgram.programId // just for Anchor reference
-          },
-          signers: [provider.wallet.keypair]// acc must sign this Tx, to prove we have the private key too
-        });
-        console.log(txt);
+        console.log("start bet", anchor.web3.SystemProgram.programId)
+        console.log(program);
+        const tx = await program.methods
+        .bet(betSide)
+        .accounts({
+          lockAccount: lock_account, // publickey for our new account
+          owner: publicKey,
+          escrowAccount: escrow_account,
+          systemProgram: anchor.web3.SystemProgram.programId
+        })
+        .transaction();
+
+        const signature = await window.xnft.send(tx);
+        console.log("tx signature", signature);
+
+        // const txt = await program.rpc.bet( betSide,		
+        //   new anchor.BN(amount),
+        //   {
+        //     accounts: {
+        //       lockAccount: lock_account, // publickey for our new account
+        //       owner: publicKey,
+        //       escrowAccount: escrow_account,
+        //       systemProgram: anchor.web3.SystemProgram.programId // just for Anchor reference
+        //     },
+        //   }
+        // );
+        console.log('end bet');
+        return;
         let getTxReq = {
           jsonrpc: "2.0",
           id: 1,
