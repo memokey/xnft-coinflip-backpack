@@ -36,7 +36,7 @@ export function App() {
         console.log("start bet", anchor.web3.SystemProgram.programId)
         console.log(program);
         const tx = await program.methods
-        .bet(betSide)
+        .bet(betSide, new anchor.BN(amount))
         .accounts({
           lockAccount: lock_account, // publickey for our new account
           owner: publicKey,
