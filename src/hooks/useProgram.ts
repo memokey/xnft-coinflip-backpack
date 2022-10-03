@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useConnection, usePublicKey } from 'react-xnft';
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
-import { AnchorProvider} from "@project-serum/anchor";
+// import { AnchorProvider} from "@project-serum/anchor";
 
 import idl from "../coin_flip.json";
 
@@ -12,7 +12,6 @@ const commitment = "processed";
 
 export const useProgram = () => {
   const [ program, setProgram ] = useState<anchor.Program<anchor.Idl>>();
-  const [ provider, setProvider ] = useState<any>();
   const connection = useConnection();
   const publicKey = usePublicKey();
 
@@ -23,9 +22,6 @@ export const useProgram = () => {
   const updateProgram = () => {
     if (publicKey) {
       // @ts-ignore
-      const provider = new AnchorProvider(connection);
-      setProvider(provider);
-
       const program = new anchor.Program(idl as any, programID, window.xnft);
 
       setProgram(program);
@@ -36,7 +32,6 @@ export const useProgram = () => {
 
   return {
     program,
-    provider,
     connection,
   };
 };

@@ -16,7 +16,7 @@ const network = clusterApiUrl('testnet');
 
 export function App() {
   const publicKey = usePublicKey();  
-  const { program, provider, connection } = useProgram();
+  const { program, connection } = useProgram();
   const [ betAmount, setBetAmount ] = useState("0.5");
   const [statusInfo, setStatusInfo] = useState("Idle");
 
