@@ -1,5 +1,5 @@
 import ReactXnft, { Text, View, Image, List, ListItem, Button, usePublicKey } from "react-xnft";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as anchor from "@project-serum/anchor";
 import { PublicKey, clusterApiUrl } from '@solana/web3.js';
 
@@ -17,13 +17,17 @@ const network = clusterApiUrl('testnet');
 export function App() {
   const publicKey = usePublicKey();  
   const { program, connection } = useProgram();
-  const [ betAmount, setBetAmount ] = useState("0.1");
+  const [ betAmount, setBetAmount ] = useState(0.1);
   const [statusInfo, setStatusInfo] = useState("Idle");
+
+  useEffect(() => {
+    setStatusInfo("you set bet amount: " + betAmount);
+  }, [betAmount])
 
   const playFlip = async ( betSide: Number ) => {
     try{
       if (publicKey && program && connection) {
-        const amount = parseFloat(betAmount) * anchor.web3.LAMPORTS_PER_SOL;
+        const amount = betAmount / 1.0 * anchor.web3.LAMPORTS_PER_SOL;
 
         const [lock_account, _escrow_account_bump] = await PublicKey.findProgramAddress(
           [Buffer.from(anchor.utils.bytes.utf8.encode("base-testaccount"))],
@@ -33,7 +37,7 @@ export function App() {
           [Buffer.from(anchor.utils.bytes.utf8.encode("vault-testaccount"))],
           program.programId
         );
-
+        setStatusInfo("Processing...");
         const tx = await program.methods
         .bet(betSide, new anchor.BN(amount))
         .accounts({
@@ -44,36 +48,46 @@ export function App() {
         })
         .signers([])
         .transaction();
+        console.log('sending transaction')
         // @ts-ignore
         const signature = await window.xnft.send(tx);
-        console.log('sending transaction')
-        console.log("tx signature", signature);
+        console.log('got signature', signature);
         let getTxReq = {
           jsonrpc: "2.0",
           id: 1,
           method: "getTransaction",
           params: [ signature, "json" ]
         }
-        setTimeout(async () => {
-          let res = await fetch(network, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(getTxReq)
-          });
-          const resData = await res.json();
-          console.log(resData);
-        }, 30000);
-        return;
-        setStatusInfo(`You lost :(`);
+        getConfirmedTransaction(getTxReq);
       }
     } catch (error) {
       console.error(error);
       setStatusInfo("Something went wrong, please try again.");
     }
   };
+
+  const getConfirmedTransaction = async (getTxReq) => {
+    let res = await fetch(network, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(getTxReq)
+    });
+    const resData = await res.json();
+    if(!!resData.result) {
+      if(resData.result.meta.preBalances[0] > resData.result.meta.postBalances[0]) {
+        setStatusInfo("You lost :(");
+      } else {
+        setStatusInfo("You won. you got DOUBLE!");
+      }
+    } else {
+      setTimeout(async () => {
+        getConfirmedTransaction(getTxReq);
+      }, 1000);
+    }
+  }
 
   return (
     <View className="App" style={{backgroundColor: "#3D0107"}}>
@@ -129,23 +143,23 @@ export function App() {
       <Text style={{marginTop:"10px",textAlign:"center", fontSize:"10px"}}>Min Flip: 0.1 Max Flip:5</Text>
       <View style={{marginLeft:"30px", display:"flex"}}>
         <Button style={{width: "15%", height:"50px", color: "#55481A",
-      border: "6px solid #AF8439", backgroundColor:"#FFC93D", marginLeft:"0px", marginRight:"10px",marginTop:"10px"}}>0.1</Button>
+      border: "6px solid #AF8439", backgroundColor:"#FFC93D", marginLeft:"0px", marginRight:"10px",marginTop:"10px"}} onClick={() => setBetAmount(0.1)}>0.1</Button>
       <Button style={{width: "15%", height:"50px",color: "#55481A",
-      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}}>0.25</Button>
+      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}} onClick={() => setBetAmount(0.25)}>0.25</Button>
       <Button style={{width: "15%", height:"50px",color: "#55481A",
-      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}}>0.5</Button>
+      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}} onClick={() => setBetAmount(0.5)}>0.5</Button>
       <Button style={{width: "15%", height:"50px",color: "#55481A",
-      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}}>1</Button>
+      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}} onClick={() => setBetAmount(1)}>1</Button>
       </View>
       <View style={{marginLeft:"30px", marginTop:"-10px", display:"flex"}}>
         <Button style={{width: "15%", height:"50px", color: "#55481A",
-      border: "6px solid #AF8439", backgroundColor:"#FFC93D", marginLeft:"0px", marginRight:"10px",marginTop:"10px"}}>2</Button>
+      border: "6px solid #AF8439", backgroundColor:"#FFC93D", marginLeft:"0px", marginRight:"10px",marginTop:"10px"}} onClick={() => setBetAmount(2)}>2</Button>
       <Button style={{width: "15%", height:"50px",color: "#55481A",
-      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}}>3</Button>
+      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}} onClick={() => setBetAmount(3)}>3</Button>
       <Button style={{width: "15%", height:"50px",color: "#55481A",
-      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}}>4</Button>
+      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}} onClick={() => setBetAmount(4)}>4</Button>
       <Button style={{width: "15%", height:"50px",color: "#55481A",
-      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}}>5</Button>
+      border: "6px solid #AF8439", backgroundColor:"#FFC93D", margin:"10px"}} onClick={() => setBetAmount(5)}>5</Button>
       </View>
       <View style={{marginLeft:"20px", display:"flex", justifyContent: "center"}}>
         <Button style={{width: "30%", height:"60px", color: "#55481A",
