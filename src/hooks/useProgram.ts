@@ -23,7 +23,6 @@ export const useProgram = () => {
     if (publicKey) {
       // @ts-ignore
       const program = new anchor.Program(idl as any, programID, window.xnft);
-
       setProgram(program);
     } else {
       setProgram(undefined);

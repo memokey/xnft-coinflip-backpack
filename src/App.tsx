@@ -17,7 +17,7 @@ const network = clusterApiUrl('testnet');
 export function App() {
   const publicKey = usePublicKey();  
   const { program, connection } = useProgram();
-  const [ betAmount, setBetAmount ] = useState("0.5");
+  const [ betAmount, setBetAmount ] = useState("0.1");
   const [statusInfo, setStatusInfo] = useState("Idle");
 
   const playFlip = async ( betSide: Number ) => {
@@ -33,8 +33,7 @@ export function App() {
           [Buffer.from(anchor.utils.bytes.utf8.encode("vault-testaccount"))],
           program.programId
         );
-        console.log("start bet", anchor.web3.SystemProgram.programId)
-        console.log(program);
+
         const tx = await program.methods
         .bet(betSide, new anchor.BN(amount))
         .accounts({
@@ -43,43 +42,31 @@ export function App() {
           escrowAccount: escrow_account,
           systemProgram: anchor.web3.SystemProgram.programId
         })
+        .signers([])
         .transaction();
-
+        // @ts-ignore
         const signature = await window.xnft.send(tx);
+        console.log('sending transaction')
         console.log("tx signature", signature);
-
-        // const txt = await program.rpc.bet( betSide,		
-        //   new anchor.BN(amount),
-        //   {
-        //     accounts: {
-        //       lockAccount: lock_account, // publickey for our new account
-        //       owner: publicKey,
-        //       escrowAccount: escrow_account,
-        //       systemProgram: anchor.web3.SystemProgram.programId // just for Anchor reference
-        //     },
-        //   }
-        // );
-        console.log('end bet');
-        return;
         let getTxReq = {
           jsonrpc: "2.0",
           id: 1,
           method: "getTransaction",
-          params: [
-            txt,
-            "json"
-          ]
+          params: [ signature, "json" ]
         }
-        let res = await fetch(network, {
-          method: 'POST',
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(getTxReq)
-        });
-        const resData = await res.json();
-        console.log(resData);
+        setTimeout(async () => {
+          let res = await fetch(network, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(getTxReq)
+          });
+          const resData = await res.json();
+          console.log(resData);
+        }, 30000);
+        return;
         setStatusInfo(`You lost :(`);
       }
     } catch (error) {
