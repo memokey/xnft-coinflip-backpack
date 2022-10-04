@@ -18,7 +18,8 @@ export function App() {
   const publicKey = usePublicKey();  
   const { program, connection } = useProgram();
   const [ betAmount, setBetAmount ] = useState(0.1);
-  const [statusInfo, setStatusInfo] = useState("Idle");
+  const [ statusInfo, setStatusInfo ] = useState("Idle");
+  const [ link, setLink ] = useState("");
 
   useEffect(() => {
     setStatusInfo("you set bet amount: " + betAmount);
@@ -26,6 +27,7 @@ export function App() {
 
   const playFlip = async ( betSide: Number ) => {
     try{
+      setLink("");
       if (publicKey && program && connection) {
         const amount = betAmount / 1.0 * anchor.web3.LAMPORTS_PER_SOL;
 
@@ -79,7 +81,9 @@ export function App() {
     if(!!resData.result) {
       if(resData.result.meta.preBalances[0] > resData.result.meta.postBalances[0]) {
         setStatusInfo("You lost :(");
+        setLink(getTxReq.params[0]);
       } else {
+        setLink(getTxReq.params[0]);
         setStatusInfo("You won. you got DOUBLE!");
       }
     } else {
@@ -170,6 +174,13 @@ export function App() {
       <View style={{marginLeft:"20px", marginRight:"20px"}}>
         <List style={{ padding:"5px", backgroundColor:"",}}>
           <ListItem style={{color:"white",paddingLeft:"10px"}}>{statusInfo}</ListItem>
+          {
+            link != "" && (
+              <ListItem style={{color:"white",paddingLeft:"10px"}}>
+                <View>transaction: {link}</View>
+              </ListItem>
+            )
+          }
         </List>
       </View>
     </View>
